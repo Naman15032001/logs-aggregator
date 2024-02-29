@@ -9,7 +9,7 @@ const {
 class AggregatorService {
   async injest_logs(input) {
     logger.info("AggregatorService -> injest_logs -> started");
-    
+
     let logs_array = input;
     // validate input
     if (!this.validate_injest_input(logs_array)) {
@@ -19,12 +19,19 @@ class AggregatorService {
 
     //sort logs
     logs_array.sort(this.compare_by_timestamp);
-    logger.info("AggregatorService -> injest_logs -> sorted logs -> " , logs_array);
+
+    let start_time = logs_array[0].time;
+    let end_time = logs_array[logs_array.length - 1].time
+    // easy to filter later as all entry will be in this raange
+    let file_name = `${start_time}#${end_time}`
+
+    // file name start_time#end_time#unique timestamp so same start time and end time dont collide
+    logger.info("AggregatorService -> injest_logs -> sorted logs -> ", logs_array);
     const s3utils = new S3Utils();
     try {
       await s3utils.push_to_s3(
         "NAMAN",
-        `${Date.now()}`,
+        `${file_name}#${Date.now()}`,
         JSON.stringify(logs_array)
       );
     } catch (error) {
@@ -33,7 +40,7 @@ class AggregatorService {
       throw e;
     }
     return {
-      message : "injested successfully"
+      message: "injested successfully"
     }
   }
 
@@ -111,11 +118,15 @@ class AggregatorService {
         );
 
         for (const obj of data.Contents) {
-          const timestamp = parseInt(obj.Key.split("/")[1].split(".")[0]);
-          if (timestamp >= start_time && timestamp <= end_time) {
+          const timestamp = (obj.Key.split("/")[1].split(".")[0]);
+
+          const timestamp_min = parseInt(timestamp.split("#")[0])
+          const timestamp_max = parseInt(timestamp.split("#")[1])
+
+          if (start_time <= timestamp_max && end_time>=timestamp_min) {
             const logs = await this.get_object_logs(obj.Key, s3utils);
             logs.forEach((log) => {
-              if (log.log.includes(search_text)) {
+              if (log.time >= start_time && log.time <= end_time && log.log.includes(search_text)) {
                 filtered_logs.push(log);
               }
             });
@@ -176,3 +187,6 @@ class AggregatorService {
 }
 
 module.exports = AggregatorService;
+
+
+
