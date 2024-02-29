@@ -1,7 +1,7 @@
 # LOGS AGGREGATOR SERVICE
 
 # Service
-This a simple REST API BASED LOG AGGREGATOR . Tech Stack NodeJS/ Express / MonogDB
+This a simple REST API BASED LOG AGGREGATOR . Tech Stack NodeJS/ Express
 
 ## Requirements
 
