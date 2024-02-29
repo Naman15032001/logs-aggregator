@@ -40,3 +40,10 @@ app.listen(parseInt(PORT, 10), () => {
 
 
 module.exports = app;
+
+
+AWS_S3_BUCKET = mw-code-tester
+AWS_REGION =  ap-south-1
+ACCESS_KEY =  AKIAVQHKED5NDIVEAKU6
+SECRET_KEY = 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
+LOG_LEVEL = info
